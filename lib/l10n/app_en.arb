@@ -1,0 +1,8 @@
+{
+    "trip": "Trip",
+    "trips": "Trips",
+    "add": "Add",
+    "edit": "Edit",
+    "addTrip": "Add Trip",
+    "enterTripName": "Enter trip name."
+}
