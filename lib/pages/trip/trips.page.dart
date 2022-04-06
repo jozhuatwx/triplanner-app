@@ -16,13 +16,13 @@ class TripsPage extends StatelessWidget {
   final refreshController = RefreshController(initialRefresh: true);
 
   void _refresh(BuildContext context) async {
-    await Provider.of<TripsProvider>(context, listen: false).readAsync();
+    await Provider.of<TripsProvider>(context, listen: false).getTripsAsync();
     refreshController.refreshCompleted();
   }
 
   @override
   Widget build(BuildContext context) {
-    var trips = Provider.of<TripsProvider>(context).getTrips;
+    var trips = Provider.of<TripsProvider>(context).getTrips();
     return PlatformScaffold(
       appBar: PlatformAppBar(
         title: Text(AppLocalizations.of(context)!.trips),
@@ -46,7 +46,7 @@ class TripsPage extends StatelessWidget {
         },
         controller: refreshController,
         child: ListView.builder(
-          itemCount: trips.length,
+          itemCount: trips!.length,
           itemBuilder: (context, index) {
             return Container(
               margin: const EdgeInsets.only(

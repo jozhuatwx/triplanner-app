@@ -31,7 +31,7 @@ class App extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(
-          value: TripsProvider(),
+          value: TripsProvider.getInstance(),
         ),
       ],
       child: Theme(

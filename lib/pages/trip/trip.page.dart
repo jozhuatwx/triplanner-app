@@ -52,13 +52,11 @@ class _TripPageState extends State<TripPage> {
                   trip!.name = tripNameController!.text;
                   Provider.of<TripsProvider>(context, listen: false)
                       .updateTripAsync(trip: trip!)
-                      .then((result) {
-                    if (result) {
-                      setState(() {
-                        isCreating = false;
-                        isEditing = false;
-                      });
-                    }
+                      .then((value) {
+                    setState(() {
+                      isCreating = false;
+                      isEditing = false;
+                    });
                   });
                 }
               },

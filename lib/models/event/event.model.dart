@@ -32,7 +32,7 @@ class Event {
   }
 
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);
-  static List<Event> fromJsonList(List json) =>
-      json.map((e) => _$EventFromJson(e)).toList();
+  static List<Event> fromJsonList(dynamic json) =>
+      json.map<Event>((e) => _$EventFromJson(e)).toList();
   Map<String, dynamic> toJson() => _$EventToJson(this);
 }

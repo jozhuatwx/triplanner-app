@@ -21,7 +21,7 @@ class Trip {
   }
 
   factory Trip.fromJson(Map<String, dynamic> json) => _$TripFromJson(json);
-  static List<Trip> fromJsonList(List json) =>
-      json.map((e) => _$TripFromJson(e)).toList();
+  static List<Trip> fromJsonList(dynamic json) =>
+      json.map<Trip>((e) => _$TripFromJson(e)).toList();
   Map<String, dynamic> toJson() => _$TripToJson(this);
 }

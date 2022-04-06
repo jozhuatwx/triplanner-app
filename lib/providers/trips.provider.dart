@@ -1,45 +1,37 @@
-import 'package:flutter/material.dart';
-
 import '../models/trip/trip.model.dart';
-import '../services/local_storage.dart';
+import '../services/storage.service.dart';
+import 'provider_base.dart';
 
-class TripsProvider extends ChangeNotifier {
-  var _trips = <Trip>[];
+class TripsProvider extends ProviderListBase<List<Trip>> {
+  static final TripsProvider _instance = TripsProvider._internal();
 
-  List<Trip> get getTrips {
-    return _trips;
+  TripsProvider._internal()
+      : super(
+          fileName: FileName.trips,
+          defaultValue: <Trip>[],
+          storageType: StorageType.document,
+        );
+
+  static TripsProvider getInstance() {
+    return _instance;
   }
 
-  Future<List<Trip>> readAsync() async {
-    var storage = await LocalStorage.init();
-    var data = await storage.readFile(fileName: FileName.trips);
-    if (data != null) {
-      _trips = Trip.fromJsonList(data);
-      notifyListeners();
-    }
-    return _trips;
+  List<Trip>? getTrips() {
+    return getData;
   }
 
-  Future<bool> updateTripAsync(
-      {required Trip trip, addIfNotExist = true}) async {
-    try {
-      await readAsync();
+  Future<List<Trip>?> getTripsAsync() async {
+    return await getDataAsync(fromJson: Trip.fromJsonList);
+  }
 
-      var index = _trips.indexWhere((e) => e.id == trip.id);
-      if (index >= 0) {
-        _trips[index] = trip;
-      } else if (addIfNotExist) {
-        _trips.add(trip);
-      } else {
-        return false;
-      }
-
-      var storage = await LocalStorage.init();
-      await storage.writeFile(fileName: FileName.trips, content: _trips);
-      notifyListeners();
-      return true;
-    } catch (e) {
-      return false;
-    }
+  Future updateTripAsync({
+    required Trip trip,
+  }) async {
+    await getLatestDataAsync(fromJson: Trip.fromJsonList, notify: false);
+    await updateDataListAsync(
+      content: trip,
+      index: getData!.indexWhere((element) => element.id == trip.id),
+      insert: true,
+    );
   }
 }
