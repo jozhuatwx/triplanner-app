@@ -207,13 +207,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_platform_widgets:
-    dependency: "direct main"
-    description:
-      name: flutter_platform_widgets
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.20.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -455,13 +448,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0"
-  pull_to_refresh:
-    dependency: "direct main"
-    description:
-      name: pull_to_refresh
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -665,4 +651,4 @@ packages:
     version: "3.1.0"
 sdks:
   dart: ">=2.16.2 <3.0.0"
-  flutter: ">=2.10.0"
+  flutter: ">=2.8.0"

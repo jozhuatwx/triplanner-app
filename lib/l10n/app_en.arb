@@ -4,5 +4,6 @@
     "add": "Add",
     "edit": "Edit",
     "addTrip": "Add Trip",
-    "enterTripName": "Enter trip name."
+    "tripName": "Trip Name",
+    "enterTripNameError": "Enter trip name."
 }

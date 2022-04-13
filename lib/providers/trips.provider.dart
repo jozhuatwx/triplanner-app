@@ -1,3 +1,6 @@
+import 'package:intl/intl.dart';
+
+import '../models/enums/directory_name.dart';
 import '../models/trip/trip.model.dart';
 import '../services/storage.service.dart';
 import 'provider_base.dart';
@@ -7,7 +10,7 @@ class TripsProvider extends ProviderListBase<List<Trip>> {
 
   TripsProvider._internal()
       : super(
-          fileName: FileName.trips,
+          directoryName: DirectoryName.trips,
           defaultValue: <Trip>[],
           storageType: StorageType.document,
         );
@@ -21,17 +24,27 @@ class TripsProvider extends ProviderListBase<List<Trip>> {
   }
 
   Future<List<Trip>?> getTripsAsync() async {
-    return await getDataAsync(fromJson: Trip.fromJsonList);
+    return await getDataAsync(fileName: _generateFileName(), fromJson: Trip.fromJsonList);
   }
 
   Future updateTripAsync({
     required Trip trip,
   }) async {
-    await getLatestDataAsync(fromJson: Trip.fromJsonList, notify: false);
+    await getLatestDataAsync(
+      fileName: _generateFileName(date: trip.startDate),
+      fromJson: Trip.fromJsonList,
+      notify: false,
+    );
     await updateDataListAsync(
+      fileName: _generateFileName(date: trip.startDate),
       content: trip,
       index: getData!.indexWhere((element) => element.id == trip.id),
       insert: true,
     );
+  }
+
+  String _generateFileName({DateTime? date}) {
+    final formatter = DateFormat('yyyyMM');
+    return "${formatter.format(date ?? DateTime.now())}.json";
   }
 }

@@ -4,20 +4,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum FileName {
-  trips,
-}
-
-extension FileNameExtension on FileName {
-  String get value {
-    switch (this) {
-      case FileName.trips:
-        return 'trips.json';
-      default:
-        throw ('Invalid file name.');
-    }
-  }
-}
+import '../models/enums/directory_name.dart';
 
 enum StorageType {
   document,
@@ -36,23 +23,35 @@ class StorageService {
 
   StorageService._internal();
   static Future<StorageService> getInstanceAsync() async {
-    _documents ??= await getApplicationDocumentsDirectory();
-    _support ??= await getApplicationSupportDirectory();
-    _temporary ??= await getTemporaryDirectory();
-    _preferences ??= await SharedPreferences.getInstance();
+    if (_documents == null) {
+      _documents = await getApplicationDocumentsDirectory();
+      _support = await getApplicationSupportDirectory();
+      _temporary = await getTemporaryDirectory();
+      _preferences = await SharedPreferences.getInstance();
+    }
     return _instance;
   }
 
-  File? _file({required StorageType storageType, required String fileName}) {
+  File _file({
+    required Directory directory,
+    required String fileName,
+  }) {
+    return File("${directory.path}/$fileName");
+  }
+
+  Directory _directory({
+    required StorageType storageType,
+    required DirectoryName directoryName,
+  }) {
     switch (storageType) {
       case StorageType.document:
-        return File('${_documents!.path}/$fileName');
+        return Directory('${_documents!.path}/${directoryName.value}');
 
       case StorageType.support:
-        return File('${_support!.path}/$fileName');
+        return Directory('${_support!.path}/${directoryName.value}');
 
       case StorageType.temporary:
-        return File('${_temporary!.path}/$fileName');
+        return Directory('${_temporary!.path}/${directoryName.value}');
 
       default:
         throw ('Invalid storage type.');
@@ -60,7 +59,8 @@ class StorageService {
   }
 
   Future<T?> getAsync<T>({
-    required FileName fileName,
+    required DirectoryName directoryName,
+    required String fileName,
     required T Function(dynamic) fromJson,
     StorageType storageType = StorageType.document,
   }) async {
@@ -68,16 +68,25 @@ class StorageService {
       case StorageType.document:
       case StorageType.support:
       case StorageType.temporary:
-        final file = _file(
+        final directory = _directory(
           storageType: storageType,
-          fileName: fileName.value,
+          directoryName: directoryName,
         );
-        if (await file!.exists()) {
-          return fromJson(jsonDecode(await file.readAsString()));
+
+        if (await directory.exists()) {
+          final file = _file(
+            directory: directory,
+            fileName: fileName,
+          );
+
+          if (await file.exists()) {
+            return fromJson(jsonDecode(await file.readAsString()));
+          }
         }
         return null;
       case StorageType.preferences:
-        final string = _preferences!.getString(fileName.value);
+        final string =
+            _preferences!.getString('${directoryName.value}/$fileName');
         if (string != null) {
           return fromJson(jsonDecode(string));
         }
@@ -87,33 +96,63 @@ class StorageService {
 
   Future setAsync({
     StorageType storageType = StorageType.document,
-    required FileName fileName,
+    required DirectoryName directoryName,
+    required String fileName,
     required content,
   }) async {
     switch (storageType) {
       case StorageType.document:
       case StorageType.support:
       case StorageType.temporary:
-        final file = _file(storageType: storageType, fileName: fileName.value);
-        return await file!.writeAsString(jsonEncode(content));
+        final directory = _directory(
+          storageType: storageType,
+          directoryName: directoryName,
+        );
+        if (!await directory.exists()) {
+          await directory.create();
+        }
+
+        final file = _file(
+          directory: directory,
+          fileName: fileName,
+        );
+        return await file.writeAsString(jsonEncode(content));
       case StorageType.preferences:
         return await _preferences!
-            .setString(fileName.value, jsonEncode(content));
+            .setString('${directoryName.value}/$fileName', jsonEncode(content));
     }
   }
 
-  Future deleteAsync({
-    required FileName fileName,
+  Future<bool> deleteAsync({
+    required DirectoryName directoryName,
+    required String fileName,
     required StorageType storageType,
   }) async {
     switch (storageType) {
       case StorageType.document:
       case StorageType.support:
       case StorageType.temporary:
-        final file = _file(storageType: storageType, fileName: fileName.value);
-        return await file!.delete();
+        final directory = _directory(
+          storageType: storageType,
+          directoryName: directoryName,
+        );
+
+        if (await directory.exists()) {
+          final file = _file(
+            directory: directory,
+            fileName: fileName,
+          );
+
+          try {
+            await file.delete();
+            return true;
+          } catch (e) {
+            return false;
+          }
+        }
+        return true;
       case StorageType.preferences:
-        return await _preferences!.remove(fileName.value);
+        return await _preferences!.remove('${directoryName.value}/$fileName');
     }
   }
 }

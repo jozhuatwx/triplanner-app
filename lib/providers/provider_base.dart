@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:triplanner/services/storage.service.dart';
 
+import '../models/enums/directory_name.dart';
+
 class ProviderBase<T> extends ChangeNotifier {
-  late final FileName _fileName;
+  late final DirectoryName directoryName;
+  late final T defaultValue;
   late Duration _expirationTime;
   late StorageType _storageType;
+
   T? _data;
   T? _backupData;
   DateTime? _lastGetLatest;
-  late final T defaultValue;
 
   ProviderBase({
-    required FileName fileName,
+    required this.directoryName,
     required this.defaultValue,
     Duration expirationTime = const Duration(minutes: 30),
     StorageType storageType = StorageType.document,
   }) {
-    _fileName = fileName;
     _expirationTime = expirationTime;
     _storageType = storageType;
     _data = defaultValue;
@@ -29,18 +31,24 @@ class ProviderBase<T> extends ChangeNotifier {
 
   @protected
   Future<T?> getDataAsync({
+    required String fileName,
     required T Function(dynamic) fromJson,
     bool notify = true,
   }) async {
     if (_lastGetLatest == null ||
         _lastGetLatest!.isBefore(_lastGetLatest!.add(_expirationTime))) {
-      return await getLatestDataAsync(fromJson: fromJson, notify: notify);
+      return await getLatestDataAsync(
+        fromJson: fromJson,
+        fileName: fileName,
+        notify: notify,
+      );
     }
     return _data;
   }
 
   @protected
   Future<T?> getLatestDataAsync({
+    required String fileName,
     required T Function(dynamic) fromJson,
     bool notify = true,
   }) async {
@@ -48,7 +56,8 @@ class ProviderBase<T> extends ChangeNotifier {
     var data = await storage.getAsync<T>(
           fromJson: fromJson,
           storageType: _storageType,
-          fileName: _fileName,
+          directoryName: directoryName,
+          fileName: fileName,
         ) ??
         defaultValue;
     _lastGetLatest = DateTime.now();
@@ -62,6 +71,7 @@ class ProviderBase<T> extends ChangeNotifier {
 
   @protected
   Future<T?> setDataAsync({
+    required String fileName,
     required T? content,
     bool notify = true,
   }) async {
@@ -72,7 +82,11 @@ class ProviderBase<T> extends ChangeNotifier {
 
       var storage = await StorageService.getInstanceAsync();
       await storage.setAsync(
-          storageType: _storageType, fileName: _fileName, content: content);
+        storageType: _storageType,
+        directoryName: directoryName,
+        fileName: fileName,
+        content: content,
+      );
 
       return _data;
     });
@@ -80,9 +94,18 @@ class ProviderBase<T> extends ChangeNotifier {
 
   @protected
   Future deleteDataAsync({
+    required String fileName,
     bool notify = true,
   }) async {
-    await setDataAsync(content: null, notify: notify);
+    return _rollbackableAsync(funcAsync: () async {
+      var storage = await StorageService.getInstanceAsync();
+      await storage.deleteAsync(
+        directoryName: directoryName,
+        fileName: fileName,
+        storageType: _storageType,
+      );
+      return null;
+    });
   }
 
   Future<T?> _rollbackableAsync({
@@ -102,12 +125,12 @@ class ProviderBase<T> extends ChangeNotifier {
 
 class ProviderListBase<T extends List> extends ProviderBase<T> {
   ProviderListBase({
-    required FileName fileName,
+    required DirectoryName directoryName,
     required T defaultValue,
     Duration expirationTime = const Duration(minutes: 30),
     StorageType storageType = StorageType.document,
   }) : super(
-          fileName: fileName,
+          directoryName: directoryName,
           expirationTime: expirationTime,
           storageType: storageType,
           defaultValue: defaultValue,
@@ -139,6 +162,7 @@ class ProviderListBase<T extends List> extends ProviderBase<T> {
 
   @protected
   Future<T?> updateDataListAsync({
+    required String fileName,
     required content,
     required int index,
     bool notify = true,
@@ -159,7 +183,11 @@ class ProviderListBase<T extends List> extends ProviderBase<T> {
 
       var storage = await StorageService.getInstanceAsync();
       await storage.setAsync(
-          storageType: _storageType, fileName: _fileName, content: _data);
+        storageType: _storageType,
+        directoryName: directoryName,
+        fileName: fileName,
+        content: _data,
+      );
 
       return _data;
     });

@@ -9,14 +9,21 @@ part 'trip.model.g.dart';
 class Trip {
   late String id;
   late String name;
+  late DateTime startDate;
+  late DateTime endDate;
   late List<Event> events;
 
-  DateTime? startDate;
-  DateTime? endDate;
-
-  Trip({String? id, String? name, List<Event>? events}) {
+  Trip({
+    String? id,
+    String? name,
+    DateTime? startDate,
+    DateTime? endDate,
+    List<Event>? events,
+  }) {
     this.id = id ?? const Uuid().v4();
     this.name = name ?? '';
+    this.startDate = startDate ?? DateTime.now();
+    this.endDate = endDate ?? DateTime.now();
     this.events = events ?? [];
   }
 

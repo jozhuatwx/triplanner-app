@@ -10,8 +10,12 @@ Event _$EventFromJson(Map<String, dynamic> json) => Event(
       id: json['id'] as String?,
       name: json['name'] as String,
       type: $enumDecodeNullable(_$EventTypeEnumMap, json['type']),
-      startDateTime: DateTime.parse(json['startDateTime'] as String),
-      endDateTime: DateTime.parse(json['endDateTime'] as String),
+      startDateTime: json['startDateTime'] == null
+          ? null
+          : DateTime.parse(json['startDateTime'] as String),
+      endDateTime: json['endDateTime'] == null
+          ? null
+          : DateTime.parse(json['endDateTime'] as String),
       location: json['location'] as String?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
@@ -22,8 +26,8 @@ Map<String, dynamic> _$EventToJson(Event instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'type': _$EventTypeEnumMap[instance.type],
-      'startDateTime': instance.startDateTime.toIso8601String(),
-      'endDateTime': instance.endDateTime.toIso8601String(),
+      'startDateTime': instance.startDateTime?.toIso8601String(),
+      'endDateTime': instance.endDateTime?.toIso8601String(),
       'location': instance.location,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
